@@ -13,15 +13,43 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      default-filters:
+        - name: GlobalFilter
+          args:
+            BaseMessage: Spring Cloud Gateway GlobalFilter
+            preLogger: true
+            postLogger: true
       routes:
+        - id: a-service-message
+          uri: lb://MSA-A-SERVICE
+          predicates:
+            - Path=/a-service/message/**
+          filters:
+            - AddRequestHeader=a-request, request_value
+            - AddResponseHeader=a-response, response_value
         - id: a-service
           uri: lb://MSA-A-SERVICE
           predicates:
             - Path=/a-service/**
+          filters:
+            - name: CustomFilter
+              args:
+                baseMessage: a service Custom Filter
+
         - id: b-service
           uri: lb://MSA-B-SERVICE
           predicates:
             - Path=/b-service/**
+          filters:
+            - name: CustomFilter
+              args:
+                baseMessage: Custom Filter
+            - name: LoggingFilter
+              args:
+                baseMessage: Logging Filter
+                preLogger: true
+                postLogger: true
+
         - id: c-service
           uri: lb://MSA-C-SERVICE
           predicates:
